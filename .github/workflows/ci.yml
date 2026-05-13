@@ -11,6 +11,10 @@ jobs:
     name: Lint · Test · Build
     runs-on: ubuntu-latest
 
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,18 +46,12 @@ jobs:
 
       # ── Integration: Supabase connection (requires secrets) ────────────────
       - name: Run integration tests
-        if: ${{ secrets.VITE_SUPABASE_URL != '' }}
+        if: ${{ env.VITE_SUPABASE_URL != '' }}
         run: npx vitest run tests/supabase-connection.test.ts --reporter=verbose
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       # ── Production build (validates Vite + TypeScript bundle) ─────────────
       - name: Build
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       # ── Upload build artifact (available for 7 days) ──────────────────────
       - name: Upload dist
