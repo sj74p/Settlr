@@ -37,8 +37,16 @@ body {
   .btn-primary {
     @apply px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all active:scale-95 shadow-sm;
   }
-  
+
   .card {
     @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 transition-all;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700
+           bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100
+           placeholder:text-slate-400 dark:placeholder:text-slate-500
+           focus:outline-none focus:ring-2 focus:ring-primary-500
+           transition-colors duration-200;
   }
 }
