@@ -11,5 +11,10 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "env": {
+    "staging": {
+      "name": "settlr-staging"
+    }
+  }
 }
