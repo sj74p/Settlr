@@ -67,7 +67,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({ groupId, onBack }) => 
   }, [expenses, searchQuery, categoryFilter]);
 
   const handleDuplicate = async (exp: Expense) => {
-    const { id, createdAt, ...rest } = exp;
+    const { id: _id, createdAt: _createdAt, ...rest } = exp;
     await addExpense({ ...rest, date: new Date().toISOString().split('T')[0] });
   };
 

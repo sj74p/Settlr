@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CalculationEngine } from '../src/services/calculationEngine';
-import { Member } from '../src/types';
+import type { Member, ExpenseCategory, SplitMethod } from '../src/types';
 
 describe('CalculationEngine', () => {
   const mockMembers: Member[] = [
@@ -55,8 +55,8 @@ describe('CalculationEngine', () => {
           groupId: 'g1',
           title: 'Dinner',
           date: '',
-          category: 'Food' as any,
-          splitMethod: 'equal' as any,
+          category: 'Food' as ExpenseCategory,
+          splitMethod: 'equal' as SplitMethod,
           createdAt: ''
         }
       ];

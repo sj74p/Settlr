@@ -7,7 +7,7 @@ interface LogEntry {
   level: LogLevel;
   message: string;
   traceId?: string;
-  data?: any;
+  data?: unknown;
 }
 
 class Logger {
@@ -35,7 +35,7 @@ class Logger {
     this.currentTraceId = null;
   }
 
-  private log(level: LogLevel, message: string, data?: any) {
+  private log(level: LogLevel, message: string, data?: unknown) {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -67,7 +67,7 @@ class Logger {
     }
   }
 
-  private serializeData(data: any): any {
+  private serializeData(data: unknown): unknown {
     if (!data) return null;
     if (data instanceof Error) {
       return { name: data.name, message: data.message, stack: data.stack };
@@ -79,7 +79,7 @@ class Logger {
     }
   }
 
-  private async syncToCloud(level: LogLevel, message: string, data?: any) {
+  private async syncToCloud(level: LogLevel, message: string, data?: unknown) {
     try {
       await supabase.from('trace_logs').insert({
         trace_id: this.currentTraceId || 'SYSTEM',
@@ -93,10 +93,10 @@ class Logger {
     }
   }
 
-  info(message: string, data?: any) { this.log('info', message, data); }
-  warn(message: string, data?: any) { this.log('warn', message, data); }
-  error(message: string, data?: any) { this.log('error', message, data); }
-  trace(message: string, data?: any) { this.log('trace', message, data); }
+  info(message: string, data?: unknown) { this.log('info', message, data); }
+  warn(message: string, data?: unknown) { this.log('warn', message, data); }
+  error(message: string, data?: unknown) { this.log('error', message, data); }
+  trace(message: string, data?: unknown) { this.log('trace', message, data); }
 }
 
 export const logger = Logger.getInstance();

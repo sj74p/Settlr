@@ -26,9 +26,9 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
     setMembers(members.filter((_, i) => i !== index));
   };
 
-  const updateMember = (index: number, field: string, value: any) => {
+  const updateMember = (index: number, field: 'displayName' | 'fairnessWeight', value: string | number) => {
     const newMembers = [...members];
-    (newMembers[index] as any)[field] = value;
+    newMembers[index] = { ...newMembers[index], [field]: value };
     setMembers(newMembers);
   };
 
@@ -56,8 +56,8 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
       // Reset form
       setName('');
       setMembers([{ displayName: '', fairnessWeight: 1 }]);
-    } catch (err: any) {
-      setErrors([err.message]);
+    } catch (err: unknown) {
+      setErrors([err instanceof Error ? err.message : String(err)]);
     }
   };
 

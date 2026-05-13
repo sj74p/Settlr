@@ -64,8 +64,8 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({ isOpen, onClose, g
       onClose();
       setAmount('');
       setNote('');
-    } catch (err: any) {
-      setErrors([err.message]);
+    } catch (err: unknown) {
+      setErrors([err instanceof Error ? err.message : String(err)]);
     }
   };
 

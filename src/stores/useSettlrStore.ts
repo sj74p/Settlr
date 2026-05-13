@@ -9,6 +9,8 @@ import { toast } from 'react-hot-toast';
 const optimisticExpenseIds = new Set<string>();
 const optimisticSettlementIds = new Set<string>();
 
+const toMessage = (e: unknown) => e instanceof Error ? e.message : String(e);
+
 interface SettlrActions {
   // Auth
   setUser: (user: User | null) => void;
@@ -64,9 +66,9 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
       const groupSummaries = await SupabaseStore.fetchGroupSummaries(groups.map(g => g.id));
       set({ groups, groupSummaries, isLoading: false });
       logger.info('Successfully loaded groups', { count: groups.length });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to load groups', error);
-      set({ error: error.message, isLoading: false });
+      set({ error: toMessage(error), isLoading: false });
     } finally {
       logger.endTrace();
     }
@@ -83,7 +85,7 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
     try {
       await SupabaseStore.archiveGroup(groupId);
       toast.success('Group archived');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to archive group', error);
       toast.error('Failed to archive group');
       set({ groups: originalGroups });
@@ -102,9 +104,9 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
         groups: [newGroup, ...state.groups],
       }));
       toast.success('Group created!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to create group');
-      set({ error: error.message });
+      set({ error: toMessage(error) });
     } finally {
       set({ isSaving: false });
     }
@@ -125,9 +127,9 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
         return { expenses: [...optimistic, ...serverExpenses], isLoading: false };
       });
       if (!silent) logger.info('Successfully loaded expenses', { count: serverExpenses.length });
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!silent) logger.error('Failed to load expenses', error);
-      set({ error: error.message, isLoading: false });
+      set({ error: toMessage(error), isLoading: false });
     } finally {
       if (!silent) logger.endTrace();
     }
@@ -160,14 +162,14 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
       set((state) => ({
         expenses: state.expenses.map(e => e.id === tempId ? newExpense : e)
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error saving expense', error);
       toast.error('Failed to sync expense');
       optimisticExpenseIds.delete(tempId);
       // 3. Rollback
       set((state) => ({
         expenses: state.expenses.filter(e => e.id !== tempId),
-        error: `Failed to save expense: ${error.message}`
+        error: `Failed to save expense: ${toMessage(error)}`
       }));
     } finally {
       set({ isSaving: false });
@@ -193,7 +195,7 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
         expenses: state.expenses.map(e => e.id === expenseId ? updated : e)
       }));
       toast.success('Expense updated!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error updating expense', error);
       toast.error('Failed to update expense');
       set({ expenses: originalExpenses });
@@ -219,7 +221,7 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
       await SupabaseStore.deleteExpense(expenseId);
       logger.info('Expense deleted successfully');
       toast.success('Expense removed');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error deleting expense', error);
       toast.error('Failed to delete expense');
       // 2. Rollback
@@ -243,9 +245,9 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
         return { settlements: [...optimistic, ...serverSettlements], isLoading: false };
       });
       if (!silent) logger.info('Successfully loaded settlements', { count: serverSettlements.length });
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!silent) logger.error('Failed to load settlements', error);
-      set({ error: error.message, isLoading: false });
+      set({ error: toMessage(error), isLoading: false });
     } finally {
       if (!silent) logger.endTrace();
     }
@@ -276,13 +278,13 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
       set((state) => ({
         settlements: state.settlements.map(s => s.id === tempId ? newSettlement : s)
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error saving settlement', error);
       toast.error('Failed to sync settlement');
       optimisticSettlementIds.delete(tempId);
       set((state) => ({
         settlements: state.settlements.filter(s => s.id !== tempId),
-        error: `Failed to save settlement: ${error.message}`
+        error: `Failed to save settlement: ${toMessage(error)}`
       }));
     } finally {
       set({ isSaving: false });
@@ -306,7 +308,7 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
       await SupabaseStore.deleteSettlement(settlementId);
       logger.info('Settlement deleted successfully');
       toast.success('Settlement removed');
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error deleting settlement', error);
       toast.error('Failed to delete settlement');
       // 2. Rollback

@@ -2,6 +2,9 @@ import { supabase } from './supabaseClient';
 import type { DataStore } from './dataStore';
 import type { Expense, Member } from '../types';
 
+type GmRow = { id: string; group_id: string; user_id: string | null; display_name: string; fairness_weight: number; is_guest: boolean; joined_at: string };
+type ShareRow = { member_id: string; amount: number; weight: number | null; percentage: number | null };
+
 export const SupabaseStore: DataStore = {
   async fetchGroups() {
     const { data, error } = await supabase
@@ -18,7 +21,7 @@ export const SupabaseStore: DataStore = {
       isArchived: group.is_archived ?? false,
       createdAt: group.created_at,
       createdBy: group.created_by,
-      members: group.group_members.map((gm: any) => ({
+      members: group.group_members.map((gm: GmRow) => ({
         id: gm.id,
         groupId: gm.group_id,
         userId: gm.user_id,
@@ -62,7 +65,7 @@ export const SupabaseStore: DataStore = {
 
     return {
       ...group,
-      members: memberData.map((gm: any) => ({
+      members: memberData.map((gm: GmRow) => ({
         id: gm.id,
         groupId: gm.group_id,
         userId: gm.user_id,
@@ -120,7 +123,7 @@ export const SupabaseStore: DataStore = {
       splitMethod: exp.split_method,
       notes: exp.notes ?? undefined,
       createdAt: exp.created_at,
-      shares: exp.expense_shares.map((s: any) => ({
+      shares: exp.expense_shares.map((s: ShareRow) => ({
         memberId: s.member_id,
         amount: Number(s.amount),
         weight: s.weight ? Number(s.weight) : undefined,

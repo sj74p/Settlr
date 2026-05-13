@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { CalculationEngine } from '../src/services/calculationEngine';
 import { DebtSimplifier } from '../src/services/debtSimplifier';
-import { Member, Balance } from '../src/types';
+import type { Balance, SplitMethod, ExpenseCategory } from '../src/types';
 
 describe('Settlr Properties (fast-check)', () => {
 
@@ -30,7 +30,7 @@ describe('Settlr Properties (fast-check)', () => {
         membersArb,
         fc.constantFrom('equal', 'fairness'),
         (amount, members, method) => {
-          const shares = CalculationEngine.calculateShares(amount, members, method as any);
+          const shares = CalculationEngine.calculateShares(amount, members, method as SplitMethod);
           const sum = shares.reduce((s, share) => s + share.amount, 0);
           expect(Math.abs(sum - amount)).toBeLessThanOrEqual(0.01);
         }
@@ -55,8 +55,8 @@ describe('Settlr Properties (fast-check)', () => {
             const shares = CalculationEngine.calculateShares(re.amount, members, 'equal');
             return {
               id: `e${idx}`, groupId: 'g1', title: 'Test', amount: re.amount,
-              paidBy, date: '', category: 'Other' as any,
-              splitMethod: 'equal' as any, shares, createdAt: ''
+              paidBy, date: '', category: 'Other' as ExpenseCategory,
+              splitMethod: 'equal' as SplitMethod, shares, createdAt: ''
             };
           });
 

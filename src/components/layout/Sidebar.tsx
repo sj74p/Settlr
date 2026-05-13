@@ -12,7 +12,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const { signOut, displayName } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
-  const navItems = [
+  const navItems: { id: 'groups' | 'analytics' | 'profile'; label: string; icon: typeof Home }[] = [
     { id: 'groups', label: 'Groups', icon: Home },
     { id: 'analytics', label: 'Analytics', icon: PieChart },
     { id: 'profile', label: 'Profile', icon: User },
@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id as any)}
+            onClick={() => onTabChange(item.id)}
             className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group ${
               activeTab === item.id
                 ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
