@@ -3,7 +3,7 @@ import { X, DollarSign, Tag, Users, Loader2, Info, FileText } from 'lucide-react
 import { useSettlrStore } from '../../stores/useSettlrStore';
 import { CalculationEngine } from '../../services/calculationEngine';
 import { ValidationService } from '../../services/validationService';
-import type { Member, SplitMethod, MemberShare, Expense, ExpenseCategory } from '../../types/index';
+import type { SplitMethod, MemberShare, Expense, ExpenseCategory } from '../../types/index';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -229,7 +229,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClos
                 <select 
                   className="input-field pl-11 appearance-none cursor-pointer"
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
                 >
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>

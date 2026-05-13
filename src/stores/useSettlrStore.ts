@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AppState, Group, Expense, Settlement, Member, User, Session } from '../types/index';
+import type { AppState, Expense, Settlement, Member, User, Session } from '../types/index';
 import { SupabaseStore } from '../lib/supabaseStore';
 import { supabase } from '../lib/supabaseClient';
 import { logger } from '../services/loggerService';

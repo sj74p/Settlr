@@ -18,7 +18,6 @@ export const seedMockData = async () => {
 
     const alice = group1.members.find(m => m.displayName === 'Alice')!;
     const bob = group1.members.find(m => m.displayName === 'Bob')!;
-    const charlie = group1.members.find(m => m.displayName === 'Charlie')!;
 
     // 2. Add Expenses for Roommates
     // - Groceries ($120, Paid by Alice, Equal)

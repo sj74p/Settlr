@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus, Users, PieChart as PieChartIcon, Loader2, Sparkles, ChevronRight, Archive, Eye, EyeOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -10,7 +10,6 @@ import { GroupDetail } from './components/groups/GroupDetail'
 import { CreateGroupModal } from './components/groups/CreateGroupModal'
 import { useSettlrStore } from './stores/useSettlrStore'
 import { seedMockData } from './lib/seed'
-import { logger } from './services/loggerService'
 import { Toaster } from 'react-hot-toast'
 
 type Tab = 'groups' | 'analytics' | 'profile'

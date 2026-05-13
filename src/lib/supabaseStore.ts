@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import type { DataStore } from './dataStore';
-import type { Group, Expense, Settlement, Member, MemberShare } from '../types';
+import type { Expense, Member } from '../types';
 
 export const SupabaseStore: DataStore = {
   async fetchGroups() {

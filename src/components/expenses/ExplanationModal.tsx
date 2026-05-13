@@ -1,4 +1,4 @@
-import { X, Info, Scale, Users, Percent } from 'lucide-react';
+import { X, Info } from 'lucide-react';
 import type { Expense, Member } from '../../types/index';
 import { CalculationEngine } from '../../services/calculationEngine';
 
