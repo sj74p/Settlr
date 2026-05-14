@@ -269,6 +269,24 @@ export const SupabaseStore: DataStore = {
     };
   },
 
+  async removeMember(memberId: string) {
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('id', memberId);
+    if (error) throw error;
+  },
+
+  async lookupUserByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .eq('email', email.toLowerCase().trim())
+      .maybeSingle();
+    if (error || !data) return null;
+    return { userId: data.id as string, displayName: (data.display_name as string) ?? email };
+  },
+
   async updateExpense(id: string, expense: Omit<Expense, 'id' | 'createdAt'>) {
     const { data, error } = await supabase
       .from('expenses')

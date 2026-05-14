@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, Users, Scale, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, Users, Scale, Loader2, Mail, CheckCircle } from 'lucide-react';
 import { useSettlrStore } from '../../stores/useSettlrStore';
 import { ValidationService } from '../../services/validationService';
 
@@ -8,18 +8,26 @@ interface CreateGroupModalProps {
   onClose: () => void;
 }
 
+interface MemberDraft {
+  displayName: string;
+  fairnessWeight: number;
+  email: string;
+  userId: string | null;
+  accountFound: boolean | null; // null = not searched
+}
+
 export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) => {
-  const { createGroup, isSaving } = useSettlrStore();
+  const { createGroup, lookupUserByEmail, isSaving } = useSettlrStore();
   const [name, setName] = useState('');
-  const [members, setMembers] = useState<{ displayName: string; fairnessWeight: number }[]>([
-    { displayName: '', fairnessWeight: 1 }
+  const [members, setMembers] = useState<MemberDraft[]>([
+    { displayName: '', fairnessWeight: 1, email: '', userId: null, accountFound: null }
   ]);
   const [errors, setErrors] = useState<string[]>([]);
 
   if (!isOpen) return null;
 
   const addMember = () => {
-    setMembers([...members, { displayName: '', fairnessWeight: 1 }]);
+    setMembers([...members, { displayName: '', fairnessWeight: 1, email: '', userId: null, accountFound: null }]);
   };
 
   const removeMember = (index: number) => {
@@ -29,6 +37,30 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
   const updateMember = (index: number, field: 'displayName' | 'fairnessWeight', value: string | number) => {
     const newMembers = [...members];
     newMembers[index] = { ...newMembers[index], [field]: value };
+    setMembers(newMembers);
+  };
+
+  const handleEmailChange = (index: number, value: string) => {
+    const newMembers = [...members];
+    newMembers[index] = { ...newMembers[index], email: value, userId: null, accountFound: null };
+    setMembers(newMembers);
+  };
+
+  const handleEmailBlur = async (index: number) => {
+    const email = members[index].email.trim();
+    if (!email) return;
+    const result = await lookupUserByEmail(email);
+    const newMembers = [...members];
+    if (result) {
+      newMembers[index] = {
+        ...newMembers[index],
+        userId: result.userId,
+        accountFound: true,
+        displayName: newMembers[index].displayName || result.displayName,
+      };
+    } else {
+      newMembers[index] = { ...newMembers[index], userId: null, accountFound: false };
+    }
     setMembers(newMembers);
   };
 
@@ -51,11 +83,15 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
     }
 
     try {
-      await createGroup(name, validMembers.map(m => ({ ...m, isGuest: true })));
+      await createGroup(name, validMembers.map(m => ({
+        displayName: m.displayName,
+        fairnessWeight: m.fairnessWeight,
+        userId: m.userId,
+        isGuest: !m.userId,
+      })));
       onClose();
-      // Reset form
       setName('');
-      setMembers([{ displayName: '', fairnessWeight: 1 }]);
+      setMembers([{ displayName: '', fairnessWeight: 1, email: '', userId: null, accountFound: null }]);
     } catch (err: unknown) {
       setErrors([err instanceof Error ? err.message : String(err)]);
     }
@@ -110,40 +146,63 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onCl
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {members.map((member, index) => (
-                <div key={index} className="flex gap-3 animate-slide-up">
-                  <div className="relative flex-1">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      className="input-field pl-10"
-                      placeholder="Name"
-                      value={member.displayName}
-                      onChange={(e) => updateMember(index, 'displayName', e.target.value)}
-                    />
+                <div key={index} className="space-y-2 animate-slide-up">
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        className="input-field pl-10"
+                        placeholder="Name"
+                        value={member.displayName}
+                        onChange={(e) => updateMember(index, 'displayName', e.target.value)}
+                      />
+                    </div>
+                    <div className="relative w-32">
+                      <Scale className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        className="input-field pl-10"
+                        placeholder="Weight"
+                        value={member.fairnessWeight}
+                        onChange={(e) => updateMember(index, 'fairnessWeight', parseFloat(e.target.value))}
+                      />
+                    </div>
+                    {members.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMember(index)}
+                        className="p-3 text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
-                  <div className="relative w-32">
-                    <Scale className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0.1"
-                      className="input-field pl-10"
-                      placeholder="Weight"
-                      value={member.fairnessWeight}
-                      onChange={(e) => updateMember(index, 'fairnessWeight', parseFloat(e.target.value))}
-                    />
+                  <div className="flex items-center gap-2 ml-1">
+                    <div className="relative flex-1">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="email"
+                        className="input-field pl-9 py-2 text-sm"
+                        placeholder="Email to link account (optional)"
+                        value={member.email}
+                        onChange={(e) => handleEmailChange(index, e.target.value)}
+                        onBlur={() => handleEmailBlur(index)}
+                      />
+                    </div>
+                    {member.accountFound === true && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">
+                        <CheckCircle className="w-3.5 h-3.5" /> Linked
+                      </span>
+                    )}
+                    {member.accountFound === false && member.email && (
+                      <span className="text-xs text-slate-400 whitespace-nowrap">Guest</span>
+                    )}
                   </div>
-                  {members.length > 1 && (
-                    <button 
-                      type="button"
-                      onClick={() => removeMember(index)}
-                      className="p-3 text-slate-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
                 </div>
               ))}
             </div>

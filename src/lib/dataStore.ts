@@ -27,4 +27,6 @@ export interface DataStore {
   // Members
   addMember(groupId: string, member: Partial<Member>): Promise<Member>;
   updateMember(id: string, member: Partial<Member>): Promise<Member>;
+  removeMember(memberId: string): Promise<void>;
+  lookupUserByEmail(email: string): Promise<{ userId: string; displayName: string } | null>;
 }

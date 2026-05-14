@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
-import { ChevronLeft, Plus, DollarSign, ArrowRight, Calendar, Tag, Trash2, Info, Utensils, Plane, Zap, Film, HeartPulse, ShoppingBag, CreditCard, Car, Pencil, Copy, Search, Download } from 'lucide-react';
+import { ChevronLeft, Plus, DollarSign, ArrowRight, Calendar, Tag, Trash2, Info, Utensils, Plane, Zap, Film, HeartPulse, ShoppingBag, CreditCard, Car, Pencil, Copy, Search, Download, Users, Shield, Settings } from 'lucide-react';
 import { useSettlrStore } from '../../stores/useSettlrStore';
 import { CalculationEngine } from '../../services/calculationEngine';
 import { DebtSimplifier } from '../../services/debtSimplifier';
 import { AddExpenseModal } from '../expenses/AddExpenseModal';
 import { SettleUpModal } from './SettleUpModal';
 import { ExplanationModal } from '../expenses/ExplanationModal';
+import { ManageMembersModal } from './ManageMembersModal';
 import { exportExpensesToCSV } from '../../utils/csvExport';
 import type { Expense, ExpenseCategory } from '../../types/index';
 
@@ -36,6 +37,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({ groupId, onBack }) => 
   const [activeTab, setActiveTab] = React.useState<'expenses' | 'settlements'>('expenses');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState<string>('');
+  const [isManageMembersOpen, setIsManageMembersOpen] = React.useState(false);
   
   const group = groups.find(g => g.id === groupId);
 
@@ -90,8 +92,41 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({ groupId, onBack }) => 
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column: Balances & Debts */}
+        {/* Left Column: Members, Balances & Debts */}
         <div className="lg:col-span-1 space-y-8">
+          {/* Members Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary-500" />
+                Members
+              </h3>
+              <button
+                onClick={() => setIsManageMembersOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                <Settings className="w-3.5 h-3.5" /> Manage
+              </button>
+            </div>
+            <div className="space-y-2">
+              {group.members.map(m => (
+                <div key={m.id} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                      {m.displayName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm flex-1 truncate">{m.displayName}</span>
+                  {!m.isGuest && (
+                    <span title="Has a Settlr account">
+                      <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Summary Card */}
           <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border border-slate-100 dark:border-slate-700">
             <h3 className="font-bold mb-4 flex items-center gap-2">
@@ -354,13 +389,19 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({ groupId, onBack }) => 
       />
 
       {explainingExpense && (
-        <ExplanationModal 
+        <ExplanationModal
           isOpen={!!explainingExpense}
           onClose={() => setExplainingExpense(null)}
           expense={explainingExpense}
           members={group.members}
         />
       )}
+
+      <ManageMembersModal
+        isOpen={isManageMembersOpen}
+        onClose={() => setIsManageMembersOpen(false)}
+        groupId={groupId}
+      />
     </div>
   );
 };

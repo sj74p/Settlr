@@ -134,3 +134,61 @@ This implementation plan breaks down the Settlr application into actionable task
   - [ ] `archiveGroup` action in store (optimistic update)
   - [ ] Archive button on group cards (hover reveal)
   - [ ] "Show archived" toggle in dashboard; archived groups hidden by default
+
+### PHASE 8 — Member Management & Account Linking (IN PROGRESS)
+
+> **DB migrations required before this phase:** Run in Supabase SQL Editor:
+> ```sql
+> -- 1. Profiles table (links auth accounts to display names/emails for lookup)
+> CREATE TABLE IF NOT EXISTS profiles (
+>   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+>   display_name TEXT,
+>   email TEXT UNIQUE,
+>   created_at TIMESTAMPTZ DEFAULT NOW()
+> );
+>
+> ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+>
+> CREATE POLICY "Profiles viewable by authenticated users"
+>   ON profiles FOR SELECT TO authenticated USING (true);
+>
+> CREATE POLICY "Users can update own profile"
+>   ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+>
+> -- 2. Auto-populate on signup
+> CREATE OR REPLACE FUNCTION handle_new_user()
+> RETURNS TRIGGER AS $$
+> BEGIN
+>   INSERT INTO profiles (id, display_name, email)
+>   VALUES (
+>     NEW.id,
+>     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+>     NEW.email
+>   );
+>   RETURN NEW;
+> END;
+> $$ LANGUAGE plpgsql SECURITY DEFINER;
+>
+> DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+> CREATE TRIGGER on_auth_user_created
+>   AFTER INSERT ON auth.users
+>   FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
+>
+> -- 3. Backfill existing users
+> INSERT INTO profiles (id, display_name, email)
+> SELECT id, COALESCE(raw_user_meta_data->>'full_name', split_part(email, '@', 1)), email
+> FROM auth.users ON CONFLICT (id) DO NOTHING;
+> ```
+
+- [x] 38. Add existing account holders to a group by email
+  - [x] `profiles` table + trigger (SQL above, run in Supabase)
+  - [x] `lookupUserByEmail` in DataStore interface + SupabaseStore (queries `profiles` by email)
+  - [x] `lookupUserByEmail` action in Zustand store
+  - [x] Email field per member in `CreateGroupModal` — auto-lookup on blur, shows "Linked / Guest" badge
+  - [x] Linked members get `userId` set (isGuest: false); no-account members stay as guests
+
+- [x] 39. Add/remove members after group creation
+  - [x] `removeMember` in DataStore interface + SupabaseStore (hard delete, blocked by FK if member has expenses)
+  - [x] `addMember` + `removeMember` actions in Zustand store (optimistic removeMember with rollback)
+  - [x] `ManageMembersModal` — list members with remove button (disabled if member has activity), add-member form with email lookup
+  - [x] Members card in `GroupDetail` left panel — shows each member with account badge + "Manage" button

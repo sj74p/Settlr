@@ -343,6 +343,17 @@ create table settlements (
   note text,
   created_at timestamp with time zone default now()
 );
+
+-- Profiles Table (Phase 8)
+-- Public mirror of auth.users for email-based member lookup.
+-- Auto-populated via trigger on signup; allows any authenticated user
+-- to search for another user by email to link them to a group.
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  display_name text,
+  email text unique,
+  created_at timestamptz default now()
+);
 ```
 
 ## Row-Level Security (RLS) Policies
@@ -354,6 +365,10 @@ create table settlements (
 
 ### Expenses & Settlements
 - **ALL**: Restricted to users who are members of the associated `group_id`
+
+### Profiles
+- **SELECT**: Any authenticated user (needed for email-based member lookup)
+- **UPDATE**: Only the profile owner (`auth.uid() = id`)
 
 ## Real-time Sync
 

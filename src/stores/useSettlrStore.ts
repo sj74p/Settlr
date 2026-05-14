@@ -34,6 +34,11 @@ interface SettlrActions {
   addSettlement: (settlement: Omit<Settlement, 'id' | 'createdAt'>) => Promise<void>;
   deleteSettlement: (settlementId: string) => Promise<void>;
 
+  // Members
+  addMember: (groupId: string, member: Partial<Member>) => Promise<void>;
+  removeMember: (groupId: string, memberId: string) => Promise<void>;
+  lookupUserByEmail: (email: string) => Promise<{ userId: string; displayName: string } | null>;
+
   // Real-time
   subscribeToGroup: (groupId: string) => () => void;
 }
@@ -316,6 +321,46 @@ export const useSettlrStore = create<AppState & SettlrActions>((set, get) => ({
     } finally {
       logger.endTrace();
     }
+  },
+
+  // Member Actions
+  addMember: async (groupId, member) => {
+    set({ isSaving: true });
+    try {
+      const newMember = await SupabaseStore.addMember(groupId, member);
+      toast.success(`${newMember.displayName} added!`);
+      set(state => ({
+        groups: state.groups.map(g =>
+          g.id === groupId ? { ...g, members: [...g.members, newMember] } : g
+        )
+      }));
+    } catch (error: unknown) {
+      logger.error('Failed to add member', error);
+      toast.error('Failed to add member');
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  removeMember: async (groupId, memberId) => {
+    const originalGroups = get().groups;
+    set(state => ({
+      groups: state.groups.map(g =>
+        g.id === groupId ? { ...g, members: g.members.filter(m => m.id !== memberId) } : g
+      )
+    }));
+    try {
+      await SupabaseStore.removeMember(memberId);
+      toast.success('Member removed');
+    } catch (error: unknown) {
+      logger.error('Failed to remove member', error);
+      toast.error('Failed to remove member');
+      set({ groups: originalGroups });
+    }
+  },
+
+  lookupUserByEmail: async (email) => {
+    return SupabaseStore.lookupUserByEmail(email);
   },
 
   subscribeToGroup: (groupId) => {
