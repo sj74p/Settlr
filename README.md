@@ -16,6 +16,7 @@ Settlr lets you create groups, log shared expenses, and instantly see who owes w
 - Export expenses to CSV
 - Group archive, dark/light mode, expense notes
 - Full auth with email verification and row-level security
+- Member management — add or remove members after group creation, link existing Settlr accounts by email
 
 ## Tech stack
 
@@ -78,7 +79,7 @@ src/
 ├── components/
 │   ├── auth/          # LoginForm, SignupForm, ProtectedRoute
 │   ├── expenses/      # AddExpenseModal, ExplanationModal
-│   ├── groups/        # GroupDetail, CreateGroupModal, SettleUpModal
+│   ├── groups/        # GroupDetail, CreateGroupModal, SettleUpModal, ManageMembersModal
 │   ├── analytics/     # AnalyticsView (charts)
 │   └── layout/        # Sidebar
 ├── services/
@@ -123,6 +124,7 @@ group_members     id, group_id, user_id (nullable), display_name, fairness_weigh
 expenses          id, group_id, title, amount, paid_by, date, category, split_method, notes, created_at
 expense_shares    id, expense_id, member_id, amount, weight?, percentage?
 settlements       id, group_id, from_member, to_member, amount, date, note, created_at
+profiles          id, display_name, email  — public mirror of auth.users for email-based member lookup
 ```
 
 Row-Level Security ensures users can only read and write data for groups they belong to.
