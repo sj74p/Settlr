@@ -129,8 +129,7 @@ Row-Level Security ensures users can only read and write data for groups they be
 
 ## Deploying
 
-**Vercel (recommended):**
-1. Import the GitHub repo at [vercel.com](https://vercel.com)
+1. Import the GitHub repo
 2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables
 3. Deploy
 
